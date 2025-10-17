@@ -114,23 +114,30 @@ def fetch_aws_cost(start: str, end: str, granularity: str = "MONTHLY", profile: 
         session_kwargs["profile_name"] = profile
     session = boto3.Session(**session_kwargs)
     client = session.client("ce")
+    total = 0.0
+    next_token: Optional[str] = None
     try:
-        response = client.get_cost_and_usage(
-            TimePeriod={"Start": start, "End": end},
-            Granularity=granularity,
-            Metrics=["UnblendedCost"],
-        )
+        while True:
+            request: Dict[str, object] = {
+                "TimePeriod": {"Start": start, "End": end},
+                "Granularity": granularity,
+                "Metrics": ["UnblendedCost"],
+            }
+            if next_token:
+                request["NextPageToken"] = next_token
+            response = client.get_cost_and_usage(**request)
+            for result in response.get("ResultsByTime", []):
+                amount = result.get("Total", {}).get("UnblendedCost", {}).get("Amount", "0")
+                try:
+                    total += float(amount)
+                except ValueError:
+                    LOGGER.debug("Skipping unparsable AWS amount", extra={"amount": amount})
+            next_token = response.get("NextPageToken")
+            if not next_token:
+                break
     except (BotoCoreError, ClientError) as exc:
         LOGGER.error("AWS Cost Explorer query failed: %s", exc)
         raise
-
-    total = 0.0
-    for result in response.get("ResultsByTime", []):
-        amount = result.get("Total", {}).get("UnblendedCost", {}).get("Amount", "0")
-        try:
-            total += float(amount)
-        except ValueError:
-            LOGGER.debug("Skipping unparsable AWS amount", extra={"amount": amount})
     LOGGER.info("AWS spend from %s to %s: %.2f", start, end, total)
     return total
 
@@ -177,20 +184,37 @@ def fetch_azure_cost(
         raise
 
     total = 0.0
-    if result.rows:
-        try:
-            cost_index = next(
-                index for index, column in enumerate(result.columns or []) if getattr(column, "name", "") == "PreTaxCost"
-            )
-        except StopIteration:
-            cost_index = 0
-        for row in result.rows:
+    def _accumulate_rows(page) -> None:
+        nonlocal total
+        cost_index = _azure_cost_column_index(page)
+        for row in page.rows or []:
             try:
                 total += float(row[cost_index])
             except (ValueError, IndexError) as exc:
                 LOGGER.debug("Skipping Azure row", extra={"row": row, "error": str(exc)})
+
+    _accumulate_rows(result)
+
+    next_link = getattr(result, "next_link", None)
+    while next_link:
+        try:
+            result = client.query.usage_next(next_link)
+        except AzureError as exc:
+            LOGGER.error("Azure Cost Management pagination failed: %s", exc)
+            raise
+        _accumulate_rows(result)
+        next_link = getattr(result, "next_link", None)
     LOGGER.info("Azure spend from %s to %s: %.2f", start, end, total)
     return total
+
+
+def _azure_cost_column_index(result) -> int:
+    try:
+        return next(
+            index for index, column in enumerate(getattr(result, "columns", []) or []) if getattr(column, "name", "") == "PreTaxCost"
+        )
+    except StopIteration:
+        return 0
 
 
 def _get_subscription_from_env() -> Optional[str]:
@@ -226,13 +250,17 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         costs["AWS"] = fetch_aws_cost(args.start, args.end, args.granularity, profile=args.aws_profile)
 
     if "azure" in provider_targets:
-        costs["Azure"] = fetch_azure_cost(
-            args.start,
-            args.end,
-            args.granularity,
-            subscription_id=args.azure_subscription,
-            scope=args.azure_scope,
-        )
+        try:
+            costs["Azure"] = fetch_azure_cost(
+                args.start,
+                args.end,
+                args.granularity,
+                subscription_id=args.azure_subscription,
+                scope=args.azure_scope,
+            )
+        except (AzureError, ValueError) as exc:
+            LOGGER.error("Azure cost retrieval failed: %s", exc)
+            return 1
 
     if args.chart and not args.no_plot:
         try:
