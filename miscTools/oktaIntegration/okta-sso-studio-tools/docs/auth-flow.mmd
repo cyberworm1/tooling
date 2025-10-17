@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant User
+    participant App
+    participant Okta
+    User->>App: Request protected resource
+    App->>User: Redirect to Okta login
+    User->>Okta: Enter credentials + MFA
+    Okta->>User: Authorization code
+    User->>App: Callback with code
+    App->>Okta: Exchange code for tokens
+    Okta->>App: ID/Access/Refresh tokens
+    App->>User: Grant access with session

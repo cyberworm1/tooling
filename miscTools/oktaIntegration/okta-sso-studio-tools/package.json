@@ -1,0 +1,28 @@
+{
+  "name": "okta-sso-studio-tools",
+  "version": "1.0.0",
+  "description": "Sample Express-style application demonstrating Okta SSO for media and entertainment studio tools.",
+  "main": "app.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node app.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "okta",
+    "sso",
+    "express",
+    "media-and-entertainment",
+    "rbac"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {
+    "@okta/oidc-middleware": "^6.5.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

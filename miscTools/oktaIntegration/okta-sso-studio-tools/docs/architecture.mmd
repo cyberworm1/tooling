@@ -1,0 +1,9 @@
+graph TD
+    A[User (Artist/Editor)] -->|Access Studio Tool| B[Express Web App]
+    B -->|Redirect to Login| C[Okta Authorization Server]
+    C -->|Authenticate & Issue Tokens| B
+    B -->|Validate Token & RBAC| D[Asset Viewer]
+    D -->|Secure Access| E[Creative Assets]
+    subgraph Security Controls
+        C
+    end
