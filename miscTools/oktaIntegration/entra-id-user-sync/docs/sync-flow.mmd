@@ -1,0 +1,5 @@
+graph TD
+    A[Entra ID] -->|Graph API Query| B[PowerShell Sync Script]
+    B -->|Filter & Transform| C[CSV/JSON Output]
+    C -->|Integrate| D[Studio Tools]
+    B -->|Log Activity| E[Audit Trail]

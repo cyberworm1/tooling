@@ -1,0 +1,6 @@
+*.csv
+*.json
+sync-log.txt
+*.ps1.xml
+.DS_Store
+__pycache__/
