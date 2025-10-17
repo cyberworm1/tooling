@@ -1,0 +1,4 @@
+azure-identity>=1.15.0
+azure-mgmt-costmanagement>=3.0.1
+boto3>=1.28.0
+matplotlib>=3.5.0
