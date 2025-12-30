@@ -1,0 +1,20 @@
+[project]
+name = "autotask-mcp"
+version = "0.1.0"
+description = "Autotask MCP server for automated task review."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn>=0.27",
+  "httpx>=0.27",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+fastmcp = ["fastmcp>=0.1.0"]
+
+[tool.uvicorn]
+app = "server:app"
+host = "0.0.0.0"
+port = 8000
