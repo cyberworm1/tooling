@@ -1,7 +1,7 @@
 [project]
 name = "autotask-mcp"
-version = "0.1.0"
-description = "Autotask MCP server for automated task review."
+version = "1.0.0"
+description = "Production-quality Autotask MCP server for automated ticket and project review"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -9,12 +9,28 @@ dependencies = [
   "uvicorn>=0.27",
   "httpx>=0.27",
   "python-dotenv>=1.0",
+  "pydantic>=2.0",
 ]
 
 [project.optional-dependencies]
 fastmcp = ["fastmcp>=0.1.0"]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "ruff>=0.1.0"]
 
-[tool.uvicorn]
-app = "server:app"
-host = "0.0.0.0"
-port = 8000
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]  # Line length handled by formatter
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.setuptools]
+py-modules = ["config", "models", "cache", "client", "server"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
