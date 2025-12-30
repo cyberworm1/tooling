@@ -41,6 +41,48 @@ Install dependencies with `pip install -r <path>/requirements.txt` from an activ
 For CI environments, consider adding jobs that run `terraform validate` and `python -m compileall` for
 changed modules.
 
+## Running as a systemd Service
+
+Use a Python virtual environment and a systemd unit to run a web entrypoint such as `uvicorn` or
+`fastmcp`.
+
+### Create a Virtual Environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r miscTools/cloudCost/requirements.txt
+```
+
+### Example systemd Unit File
+
+Create a unit file such as `/etc/systemd/system/tooling.service`:
+
+```ini
+[Unit]
+Description=Tooling FastMCP Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/tooling
+ExecStart=/opt/tooling/.venv/bin/uvicorn your_module:app --host 0.0.0.0 --port 8000
+# ExecStart=/opt/tooling/.venv/bin/fastmcp your_package:app --host 0.0.0.0 --port 8000
+EnvironmentFile=/opt/tooling/.env
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### Enable and Start the Service
+
+```bash
+sudo systemctl enable tooling.service
+sudo systemctl start tooling.service
+sudo systemctl status tooling.service
+```
+
 ## Contribution Workflow
 
 1. Read the repository [contribution guidelines](CONTRIBUTING.md) for coding standards and review expectations.
