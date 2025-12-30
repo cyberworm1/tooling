@@ -58,19 +58,30 @@ asyncio.run(test())
 
 Once dependencies are installed:
 
+**Recommended (with automatic port conflict detection):**
 ```bash
-uvicorn server:app --host 0.0.0.0 --port 8000
+python run_server.py
 ```
 
-Check health at: http://localhost:8000/health
+**Or manually:**
+```bash
+uvicorn server:app --host 0.0.0.0 --port 10800
+```
+
+Check health at: http://localhost:10800/health
 
 ## LMStudio Integration
 
 Configure LMStudio to use this MCP server:
 
 1. Add MCP server in LMStudio settings
-2. Point to: `http://localhost:8000/mcp`
+2. Point to: `http://localhost:10800/autotask-mcp`
 3. Available tools will appear in your LLM interface
+
+**Note:**
+- The default port is 10800 (configurable via `SERVER_PORT` in `.env`)
+- The endpoint `/autotask-mcp` helps distinguish this service from other MCPs
+- If port 10800 is in use, `run_server.py` will automatically find the next available port
 
 ## Production Deployment
 

@@ -596,9 +596,9 @@ try:
             "entries_removed": stats_before["entries"],
         }
 
-    # Mount MCP to FastAPI app
-    app.mount("/mcp", mcp)
-    logger.info("MCP tools registered and mounted")
+    # Mount MCP to FastAPI app at configured endpoint
+    app.mount(config.mcp_endpoint, mcp)
+    logger.info(f"MCP tools registered and mounted at {config.mcp_endpoint}")
 
 except ImportError:
     logger.warning("FastMCP not available - MCP tools not loaded")

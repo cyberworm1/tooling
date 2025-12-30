@@ -60,13 +60,21 @@ AUTOTASK_RESOURCE_ID=your_resource_id
 
 ### 3. Run the Server
 
+**Recommended (with automatic port conflict detection):**
 ```bash
-uvicorn server:app --host 0.0.0.0 --port 8000
+python run_server.py
+```
+
+**Or manually with uvicorn:**
+```bash
+uvicorn server:app --host 0.0.0.0 --port 10800
 ```
 
 The server will be available at:
-- MCP endpoint: `http://localhost:8000/mcp`
-- Health check: `http://localhost:8000/health`
+- MCP endpoint: `http://localhost:10800/autotask-mcp`
+- Health check: `http://localhost:10800/health`
+
+**Note:** The server uses port 10800 by default. If that port is in use, `run_server.py` will automatically find the next available port (10801, 10802, etc.).
 
 ## Available MCP Tools
 
@@ -253,6 +261,8 @@ autotask_mcp/
 | `AUTOTASK_TIMEOUT` | Request timeout (seconds) | `30.0` |
 | `CACHE_TTL` | Cache lifetime (seconds) | `300` (5 min) |
 | `MAX_RETRIES` | Retry attempts (future use) | `3` |
+| `SERVER_PORT` | MCP server port | `10800` |
+| `MCP_ENDPOINT` | MCP endpoint path | `/autotask-mcp` |
 | `LOG_LEVEL` | Logging verbosity | `INFO` |
 
 ## Usage Examples
@@ -388,8 +398,13 @@ Install the optional dependency: `pip install fastmcp`
 
 ### Check server health
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:10800/health
 ```
+
+### Port already in use?
+If port 10800 is in use, either:
+- Use `python run_server.py` (automatically finds available port)
+- Set a different port in `.env`: `SERVER_PORT=10900`
 
 ## Development
 

@@ -48,6 +48,8 @@ class Config:
         self.timeout: float = 30.0
         self.cache_ttl: int = 300  # 5 minutes
         self.max_retries: int = 3
+        self.server_port: int = 10800
+        self.mcp_endpoint: str = "/autotask-mcp"
         self._load_from_env()
 
     def _load_from_env(self) -> None:
@@ -75,6 +77,14 @@ class Config:
         except ValueError:
             logger.warning("Invalid MAX_RETRIES, using default 3")
             self.max_retries = 3
+
+        try:
+            self.server_port = int(os.getenv("SERVER_PORT", "10800"))
+        except ValueError:
+            logger.warning("Invalid SERVER_PORT, using default 10800")
+            self.server_port = 10800
+
+        self.mcp_endpoint = os.getenv("MCP_ENDPOINT", "/autotask-mcp").strip()
 
     def validate(self) -> tuple[bool, list[str]]:
         """Validate required configuration is present."""
